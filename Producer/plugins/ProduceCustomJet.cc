@@ -24,11 +24,11 @@ GBRForestsAndConstants::GBRForestsAndConstants(edm::ParameterSet const& iConfig)
 }
 
 // ------------------------------------------------------------------------------------------
-ProduceCustomJet::ProduceCustomJet(const edm::ParameterSet& iConfig) {
+ProduceCustomJet::ProduceCustomJet(const edm::ParameterSet& iConfig, GBRForestsAndConstants const* globalCache) {
     produces<edm::ValueMap<DefineCustomJet>>("");
     input_jet_token_                    = consumes<edm::View<reco::Jet>>(iConfig.getParameter<edm::InputTag>("jets"));
     input_vertex_token_                 = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexes"));
-    input_SNU_token_               = consumes<edm::ValueMap<StoredPileupJetIdentifier>>(iConfig.getParameter<edm::InputTag>("SNUjet"));
+    input_SNU_token_               = consumes<edm::ValueMap<DefineCustomJet>>(iConfig.getParameter<edm::InputTag>("SNUjet"));
     input_rho_token_                    = consumes<double>(iConfig.getParameter<edm::InputTag>("rho"));
     parameters_token_                   = esConsumes(edm::ESInputTag("", globalCache->jec()));
     edm::InputTag srcConstituentWeights = iConfig.getParameter<edm::InputTag>("srcConstituentWeights");
@@ -42,7 +42,7 @@ ProduceCustomJet::~ProduceCustomJet() {}
 
 // ------------------------------------------------------------------------------------------
 void ProduceCustomJet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-
+    GBRForestsAndConstants const* gc = globalCache();
     using namespace edm;
     using namespace std;
     using namespace reco;
@@ -134,7 +134,7 @@ void ProduceCustomJet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     DefineCustomJet Identifier;
     // Compute the input variables
     ////////////////////////////// added PUPPI weight Value Map
-    Identifier = Computed->computeIdVariables(theJet, jec, &(*vtx), *vertexes, rho, constituentWeights, gc->applyConstituentWeight());
+    Identifier = Computed->computeVariables(theJet, jec, &(*vtx), *vertexes, rho, constituentWeights, gc->applyConstituentWeight());
     ids.push_back(Identifier);
   }
 
@@ -145,7 +145,7 @@ void ProduceCustomJet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     idsfiller.insert(jetHandle, ids.begin(), ids.end());
     idsfiller.fill();
     iEvent.put(std::move(idsout));
-  }
+  
 }
 
 

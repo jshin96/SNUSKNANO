@@ -1,4 +1,3 @@
-#ifndef SNUSKNANO_Producer_plugins_ProduceCustomJet_h
 #define SNUSKNANO_Producer_plugins_ProduceCustomJet_h
 
 // ------------------------------------------------------------------------------------------
@@ -30,8 +29,7 @@
 
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 
-#include "SNUSKNANO/Producer/interface/ComputeCustomJet.h"
-#include "SNUSKNANO/Producer/interface/DefineCustomJet.h"
+#include "SNUSKNANO/Producer/plugins/ComputeCustomJet.h"
 // ------------------------------------------------------------------------------------------
 
 class GBRForestsAndConstants {
@@ -59,8 +57,6 @@ public:
   explicit ProduceCustomJet(const edm::ParameterSet&, GBRForestsAndConstants const*);
   ~ProduceCustomJet() override;
 
-  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
   static std::unique_ptr<GBRForestsAndConstants> initializeGlobalCache(edm::ParameterSet const& pset) {
     return std::make_unique<GBRForestsAndConstants>(pset);
   }
@@ -81,9 +77,8 @@ private:
   edm::EDGetTokenT<edm::ValueMap<float>> input_constituent_weights_token_;
   edm::EDGetTokenT<edm::View<reco::Jet>> input_jet_token_;
   edm::EDGetTokenT<reco::VertexCollection> input_vertex_token_;
-  edm::EDGetTokenT<edm::ValueMap<StoredPileupJetIdentifier>> input_vm_pujetid_token_;
+  edm::EDGetTokenT<edm::ValueMap<DefineCustomJet>> input_SNU_token_;
   edm::EDGetTokenT<double> input_rho_token_;
   edm::ESGetToken<JetCorrectorParametersCollection, JetCorrectionsRecord> parameters_token_;
 };
 
-#endif

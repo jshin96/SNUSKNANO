@@ -1,14 +1,7 @@
-// ----------------------------------------------------------------------------------------------------
-//
-// Reference: DataFormats/JetReco/interface/PileupJetIdentifier.h
-//
-// ----------------------------------------------------------------------------------------------------
-
-#include <string>
 #include <map>
+#include <string>
 
-#ifndef SNUSKNANO_Producer_interface_DefineCustomJet_h
-#define SNUSKNANO_Producer_interface_DefineCustomJet_h
+#define SNUSKNANO_Producer_plugins_DefineCustomJet_h
 
 #define DECLARE_VARIABLE(NAME, TYPE)           \
 private:                                       \
@@ -26,6 +19,8 @@ public:
   DefineCustomJet();
   ~DefineCustomJet();
 
+  DECLARE_VARIABLE(jetM, float);
+  DECLARE_VARIABLE(jetPhi, float);
   DECLARE_VARIABLE(jetEta, float);
   DECLARE_VARIABLE(jetPt, float);
   DECLARE_VARIABLE(nCharged, float);
@@ -42,8 +37,13 @@ public:
   DECLARE_VARIABLE(frac05, float);
   DECLARE_VARIABLE(frac06, float);
   DECLARE_VARIABLE(frac07, float);
+  DECLARE_VARIABLE(nvtx, int);
+  DECLARE_VARIABLE(rho, float);
 };
+//namespace GlobalCache { 
+//  bool applyConstituentWeight = true;
+//}
+
 
 #undef DECLARE_VARIABLE
 
-#endif

@@ -258,91 +258,20 @@ def AddCustomJetVars(proc, jetName="", jetSrc="", jetTableName="", jetTaskName="
     # Save variables as userFloats and userInts for each jet
     #
     patJetWithUserData = "{}WithUserData".format(jetSrc)
-    getattr(proc,patJetWithUserData).userFloats.SNU_dR2Mean    = cms.InputTag("{}:dR2Mean".format(puJetIDVar))
-    getattr(proc,patJetWithUserData).userFloats.SNU_majW         = cms.InputTag("{}:majW".format(puJetIDVar))
-    getattr(proc,patJetWithUserData).userFloats.SNU_minW         = cms.InputTag("{}:minW".format(puJetIDVar))
     getattr(proc,patJetWithUserData).userFloats.SNU_frac01     = cms.InputTag("{}:frac01".format(puJetIDVar))
     getattr(proc,patJetWithUserData).userFloats.SNU_frac02     = cms.InputTag("{}:frac02".format(puJetIDVar))
     getattr(proc,patJetWithUserData).userFloats.SNU_frac03     = cms.InputTag("{}:frac03".format(puJetIDVar))
     getattr(proc,patJetWithUserData).userFloats.SNU_frac04     = cms.InputTag("{}:frac04".format(puJetIDVar))
-    getattr(proc,patJetWithUserData).userFloats.SNU_ptD            = cms.InputTag("{}:ptD".format(puJetIDVar))
-    getattr(proc,patJetWithUserData).userFloats.SNU_beta         = cms.InputTag("{}:beta".format(puJetIDVar))
-    getattr(proc,patJetWithUserData).userFloats.SNU_pull         = cms.InputTag("{}:pull".format(puJetIDVar))
-    getattr(proc,patJetWithUserData).userFloats.SNU_jetR         = cms.InputTag("{}:jetR".format(puJetIDVar))
-    getattr(proc,patJetWithUserData).userFloats.SNU_jetRchg    = cms.InputTag("{}:jetRchg".format(puJetIDVar))
     getattr(proc,patJetWithUserData).userInts.SNU_nCharged     = cms.InputTag("{}:nCharged".format(puJetIDVar))
 
     #
     # Specfiy variables in the jet table to save in NanoAOD
     #
-    getattr(proc,jetTableName).variables.SNU_dR2Mean    = SNUVARS.SNU_dR2Mean
-    getattr(proc,jetTableName).variables.SNU_majW         = SNUVARS.SNU_majW
-    getattr(proc,jetTableName).variables.SNU_minW         = SNUVARS.SNU_minW
     getattr(proc,jetTableName).variables.SNU_frac01     = SNUVARS.SNU_frac01
     getattr(proc,jetTableName).variables.SNU_frac02     = SNUVARS.SNU_frac02
     getattr(proc,jetTableName).variables.SNU_frac03     = SNUVARS.SNU_frac03
     getattr(proc,jetTableName).variables.SNU_frac04     = SNUVARS.SNU_frac04
-    getattr(proc,jetTableName).variables.SNU_ptD            = SNUVARS.SNU_ptD
-    getattr(proc,jetTableName).variables.SNU_beta         = SNUVARS.SNU_beta
-    getattr(proc,jetTableName).variables.SNU_pull         = SNUVARS.SNU_pull
-    getattr(proc,jetTableName).variables.SNU_jetR         = SNUVARS.SNU_jetR
-    getattr(proc,jetTableName).variables.SNU_jetRchg    = SNUVARS.SNU_jetRchg
     getattr(proc,jetTableName).variables.SNU_nCharged = SNUVARS.SNU_nCharged
-
-    return proc
-
-def AddBTaggingScores(proc, jetTableName=""):
-    """
-    Store b-tagging scores from various algortihm
-    """
-
-    getattr(proc, jetTableName).variables.btagDeepFlavB     = DEEPJETVARS.btagDeepFlavB
-    getattr(proc, jetTableName).variables.btagDeepFlavCvL = DEEPJETVARS.btagDeepFlavCvL
-    getattr(proc, jetTableName).variables.btagDeepFlavCvB = DEEPJETVARS.btagDeepFlavCvB
-
-    run2_nanoAOD_ANY.toModify(
-        getattr(proc, jetTableName).variables,
-        btagCSVV2 = Var("bDiscriminator('pfCombinedInclusiveSecondaryVertexV2BJetTags')",float,doc=" pfCombinedInclusiveSecondaryVertexV2 b-tag discriminator (aka CSVV2)",precision=10),
-        btagDeepB = Var("?(bDiscriminator('pfDeepCSVJetTags:probb')+bDiscriminator('pfDeepCSVJetTags:probbb'))>=0?bDiscriminator('pfDeepCSVJetTags:probb')+bDiscriminator('pfDeepCSVJetTags:probbb'):-1",float,doc="DeepCSV b+bb tag discriminator",precision=10),
-        btagDeepCvL = Var("?bDiscriminator('pfDeepCSVJetTags:probc')>=0?bDiscriminator('pfDeepCSVJetTags:probc')/(bDiscriminator('pfDeepCSVJetTags:probc')+bDiscriminator('pfDeepCSVJetTags:probudsg')):-1", float,doc="DeepCSV c vs udsg discriminator",precision=10),
-        btagDeepCvB = Var("?bDiscriminator('pfDeepCSVJetTags:probc')>=0?bDiscriminator('pfDeepCSVJetTags:probc')/(bDiscriminator('pfDeepCSVJetTags:probc')+bDiscriminator('pfDeepCSVJetTags:probb')+bDiscriminator('pfDeepCSVJetTags:probbb')):-1",float,doc="DeepCSV c vs b+bb discriminator",precision=10)
-    )
-
-    return proc
-
-def AddDeepJetGluonLQuarkScores(proc, jetTableName=""):
-    """
-    Store DeepJet raw score in jetTable for gluon and light quark
-    """
-
-    getattr(proc, jetTableName).variables.btagDeepFlavG     = DEEPJETVARS.btagDeepFlavG
-    getattr(proc, jetTableName).variables.btagDeepFlavUDS = DEEPJETVARS.btagDeepFlavUDS
-    getattr(proc, jetTableName).variables.btagDeepFlavQG    = DEEPJETVARS.btagDeepFlavQG
-
-    return proc
-
-def AddRobustParTAK4Scores(proc, jetTableName=""):
-    """
-    Store RobustParTAK4 scores in jetTable
-    """
-
-    getattr(proc, jetTableName).variables.btagRobustParTAK4B = ROBUSTPARTAK4VARS.btagRobustParTAK4B
-    getattr(proc, jetTableName).variables.btagRobustParTAK4CvL = ROBUSTPARTAK4VARS.btagRobustParTAK4CvL
-    getattr(proc, jetTableName).variables.btagRobustParTAK4CvB = ROBUSTPARTAK4VARS.btagRobustParTAK4CvB
-
-    return proc
-
-def AddParticleNetAK4Scores(proc, jetTableName=""):
-    """
-    Store ParticleNetAK4 scores in jetTable
-    """
-
-    getattr(proc, jetTableName).variables.particleNetAK4_B = PARTICLENETAK4VARS.particleNetAK4_B
-    getattr(proc, jetTableName).variables.particleNetAK4_CvsL = PARTICLENETAK4VARS.particleNetAK4_CvsL
-    getattr(proc, jetTableName).variables.particleNetAK4_CvsB = PARTICLENETAK4VARS.particleNetAK4_CvsB
-    getattr(proc, jetTableName).variables.particleNetAK4_QvsG = PARTICLENETAK4VARS.particleNetAK4_QvsG
-    getattr(proc, jetTableName).variables.particleNetAK4_G = PARTICLENETAK4VARS.particleNetAK4_G
-    getattr(proc, jetTableName).variables.particleNetAK4_puIDDisc = PARTICLENETAK4VARS.particleNetAK4_puIdDisc
 
     return proc
 

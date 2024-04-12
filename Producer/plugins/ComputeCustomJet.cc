@@ -1,7 +1,6 @@
 //Reference to RecoJets/JetProducers/src/PileupJetIdAlgo.cc
-
-#include "SNUSKNANO/Producer/interface/DefineCustomJet.h"
-
+#include "SNUSKNANO/Producer/plugins/ComputeCustomJet.h"
+#include "ROOT/RVec.hxx"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "DataFormats/JetReco/interface/Jet.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
@@ -19,10 +18,10 @@
 const float large_val = std::numeric_limits<float>::max();
 
 
-Jet_Algo::Jet_Algo() { initVariables(); }
+ComputeCustomJet::ComputeCustomJet() { initVariables(); }
 
 //-------------------------------------------------------------------------
-Jet_Algo::~Jet_Algo() {}
+ComputeCustomJet::~ComputeCustomJet() {}
 
 //-------------------------------------------------------------------------
 void ComputeCustomJet::set(const DefineCustomJet& Def) {JET_ = Def;}
@@ -61,7 +60,7 @@ DefineCustomJet ComputeCustomJet::computeVariables(const reco::Jet* jet,
     const reco::Candidate *lLead = nullptr;
 
     // you can define a vector 
-    RVec<float> frac; 
+    ROOT::RVec<float> frac; 
     float cones[] = {0.1,0.2,0.3,0.4,0.5,0.6,0.7};
     size_t ncones = sizeof(cones) / sizeof(float);
     float* coneFracs[] = {&JET_.frac01_,
@@ -77,10 +76,10 @@ DefineCustomJet ComputeCustomJet::computeVariables(const reco::Jet* jet,
     covMatrix = 0;
     float sumPt = 0.;
     float dRmin(1000);
-    float nNeut(0.0);
+    float multNeut(0.0);
 
     //variables computation
-    float jetPt = jet->pt()/jec;
+    float jetPt_ = jet->pt()/jec;
     setPtEtaPhi(*jet, JET_.jetPt_, JET_.jetEta_, JET_.jetPhi_);  // use corrected pt for jet kinematics
     JET_.jetM_ = jet->mass();
     JET_.nvtx_ = allvtx.size();
@@ -93,15 +92,15 @@ DefineCustomJet ComputeCustomJet::computeVariables(const reco::Jet* jet,
         // PAT object (https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookPATDataFormats#PatJet)
         const pat::PackedCandidate* lPack = dynamic_cast<const pat::PackedCandidate*>(icand);
         // PF object ()
-        const reco::PFCandidate* lPF = dynamic_cast<const pat::PFCandidate*>(icand);
+        const reco::PFCandidate* lPF = dynamic_cast<const reco::PFCandidate*>(icand);
         bool isPacked = true;
-        if (lPacked == nullptr) {
-            isPacked - false;
+        if (lPack == nullptr) {
+            isPacked = false;
         } 
         float candWeight = 1.0;
         // get PUPPI weight for each constituent
         if (applyConstituentWeight) {
-            candWeight = constituentWeight[jet->sourceCandidatePtr(i)];
+            candWeight = constituentWeights[jet->sourceCandidatePtr(i)];
         }
         float candPt = (icand->pt()) * candWeight;
         // There already exists reco functions for calculating basic stuff
@@ -123,7 +122,7 @@ DefineCustomJet ComputeCustomJet::computeVariables(const reco::Jet* jet,
             if (lPF && std::abs(icand->pdgId()) == 13 && pfTrk == nullptr) {
                 reco::MuonRef lmuRef = lPF->muonRef();
                 if (lmuRef.isNonnull()) {
-                    const reco::Muon& lmu = *lmuReg.get();
+                    const reco::Muon& lmu = *lmuRef.get();
                     pfTrk = lmu.bestTrack();
                     edm::LogWarning("Bad Muon") << "Found a PFCandidate muon without a track reference; falling back to Muon::bestTrack";
                 }
@@ -151,34 +150,36 @@ DefineCustomJet ComputeCustomJet::computeVariables(const reco::Jet* jet,
     if (patjet != nullptr) { // this allows running on MINIAOD slimmedjets
         JET_.nCharged_ = patjet->chargedMultiplicity();
         JET_.nNeutral_ = patjet->neutralMultiplicity();
-    else {
+    } else {
         JET_.nCharged_ = pfjet->chargedMultiplicity();
         JET_.nNeutral_ = pfjet->neutralMultiplicity();
-    if (applyConstituentWeight)
-        JET_.nNeutral_ = multNeut // PUPPI PAT does not count the PUPPI weight, so must be added manually
-        
+    }
+    if (applyConstituentWeight) {
+        JET_.nNeutral_ = multNeut;
+    } // PUPPI PAT does not count the PUPPI weight, so must be added manually
+
+    return DefineCustomJet(JET_);        
 }
 
 //-------------------------------------------------------------------------
-void PileupJetIdAlgo::resetVariables() {
+void ComputeCustomJet::resetVariables() {
   for (variables_list_t::iterator it = variables_.begin(); it != variables_.end(); ++it) {
     *it->second.first = it->second.second;
   }
-
+}
 // ------------------------------------------------------------------------------------------
-#define INIT_VARIABLE(NAME, VAL) \
-  JET_.NAME##_ = VAL;               \
-  variables_[#NAME] = std::make_pair(&JET_.NAME##_, VAL);
-
+#define INIT_VARIABLE(N, V) \
+  JET_.N##_ = V; \
+  variables_[#N] = std::make_pair(&JET_.N##_, V);
 //-------------------------------------------------------------------------
 
 
 
 void ComputeCustomJet::initVariables() {
-    INIT_VARIAVLE(jetPt,0.);
-    INIT_VARIAVLE(jetEta, large_val);
-    INIT_VARIAVLE(jetPhi, large_val);
-    INIT_VARIAVLE(jetM, 0.);
+    INIT_VARIABLE(jetPt,0.);
+    INIT_VARIABLE(jetEta, large_val);
+    INIT_VARIABLE(jetPhi, large_val);
+    INIT_VARIABLE(jetM, 0.);
     INIT_VARIABLE(nCharged, 0.);
     INIT_VARIABLE(nNeutral, 0.);
     INIT_VARIABLE(frac01, 0.);
