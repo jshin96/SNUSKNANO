@@ -7,7 +7,8 @@
   source /cvmfs/cms.cern.ch/cmsset_default.sh
   cmsrel CMSSW_13_0_10
   cd CMSSW_13_0_10/src
-  cmsrel
+  cmsenv
+  git clone 
   ```
 ## NANOAOD Production
   Recommendation available: https://gitlab.cern.ch/cms-nanoAOD/nanoaod-doc/-/wikis/Releases/NanoAODv12
