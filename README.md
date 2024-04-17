@@ -36,4 +36,4 @@
 ## Crab Run
 
   For Crab Submission, there is a template crab file in crab directory. 
-  IMPORTANT: If you run on CRAB, it is important to add fakeNameForCrab = cms.untracked.bool(True) to the configuration of the NanoAODOutputModule in the CMSSW cfg file (and to run a single instance of it - this should normally be the case).
+  IMPORTANT: If you run on CRAB, it is important to add ```fakeNameForCrab = cms.untracked.bool(True)``` to the configuration of the NanoAODOutputModule in the CMSSW cfg file (and to run a single instance of it - this should normally be the case).
