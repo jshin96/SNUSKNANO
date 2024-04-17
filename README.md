@@ -8,7 +8,8 @@
   cmsrel CMSSW_13_0_10
   cd CMSSW_13_0_10/src
   cmsenv
-  git clone 
+  git clone https://github.com/jshin96/SNUSKNANO.git
+  scram b -j 8
   ```
 ## NANOAOD Production
   Recommendation available: https://gitlab.cern.ch/cms-nanoAOD/nanoaod-doc/-/wikis/Releases/NanoAODv12
