@@ -1,19 +1,18 @@
+
+#include <memory>
+#include <iostream>
+
 #include "DataFormats/Common/interface/View.h"
 #include "DataFormats/JetReco/interface/Jet.h"
 #include "DataFormats/Math/interface/deltaR.h"
-#include "DataFormats/MuonReco/interface/MuonSimInfo.h"
-#include "DataFormats/MuonReco/interface/Muon.h"
-#include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/PatCandidates/interface/UserData.h"
-#include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
-#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -22,67 +21,72 @@
 
 #include "PhysicsTools/PatAlgos/interface/PATUserDataMerger.h"
 
-
 class AK4PuppiJetSpecialVariables : public edm::stream::EDProducer<> {
 public:
-  explicit AK4PuppiJetSpecialVariables(const edm::ParameterSet &iConfig);
-  
-  ~AK4PuppiJetSpecialVariables() override;
+  explicit AK4PuppiJetSpecialVariables(const edm::ParameterSet&);
+  ~AK4PuppiJetSpecialVariables() override {}
 
-  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
+  float jetPFCalculator(pat::Jet &jet) const;
 
 private:
   void produce(edm::Event &iEvent, const edm::EventSetup &iSetup) override;
-  edm::EDGetTokenT<std::vector<pat::Jet>> jetSrc_;
-  pat::Jet CalculatePFCands(pat::Jet jet);
+  template <typename T>
+  void putInEvent(const std::string&, const edm::Handle<std::vector<pat::Jet>>&, std::vector<T>, edm::Event&) const;   
+  edm::EDGetToken jetSrc_;
 };
-
-AK4PuppiJetSpecialVariables::AK4PuppiJetSpecialVariables(const edm::ParameterSet& iConfig) : 
-    jetSrc_(consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetSrc"))) {
-    produces<std::vector<pat::Jet>>();
-}
-
-AK4PuppiJetSpecialVariables::~AK4PuppiJetSpecialVariables() = default;
-
-pat::Jet AK4PuppiJetSpecialVariables::CalculatePFCands(pat::Jet jet) {
+AK4PuppiJetSpecialVariables::AK4PuppiJetSpecialVariables(const edm::ParameterSet& iConfig)
+    : jetSrc_(consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jetSrc"))) {
+        produces<std::vector<pat::Jet>>();
+//        produces<edm::ValueMap<float>>("chgfrac");
+  }
+float AK4PuppiJetSpecialVariables::jetPFCalculator(pat::Jet &jet) const {
 
   std::vector<reco::CandidatePtr> const &daughters = jet.daughterPtrVector();
-  float chg_frac(0.0);
+  float temp_chg_frac(0.0);
   for (const auto &cand : daughters) {
-    
     if (cand->charge() != 0) {
-      chg_frac+=cand->pt();
+      temp_chg_frac+=cand->pt();
     }
 
   }
-  chg_frac = chg_frac/jet.pt();
-  jet.addUserFloat("chg_frac", chg_frac);
-  return jet;
+  temp_chg_frac = temp_chg_frac/jet.pt();
+  return temp_chg_frac;
 }
 
-void AK4PuppiJetSpecialVariables::produce(edm::Event &iEvent, const edm::EventSetup &iSetup) {
+void AK4PuppiJetSpecialVariables::produce(edm::Event& iEvent, const edm::EventSetup &iSetup) {
+  edm::Handle<std::vector<pat::Jet>> jetSrc;
+  iEvent.getByToken(jetSrc_, jetSrc);
 
-  std::unique_ptr<std::vector<pat::Jet>> out(new std::vector<pat::Jet>());
-  edm::Handle<std::vector<pat::Jet>> jets;
-  iEvent.getByToken(jetSrc_, jets);
-
-  out->reserve(jets->size());
-
-  for (const auto& jet : *jets) {
-    pat::Jet jetcopy = jet;
-    jetcopy = CalculatePFCands(jetcopy);
-    out->push_back(jetcopy);
+  std::vector<float> v_chg_frac;
+  std::unique_ptr<std::vector<pat::Jet>> jetCollection(new std::vector<pat::Jet>(*jetSrc));
+  v_chg_frac.reserve(jetCollection->size());
+  auto out_chg_frac = std::make_unique<edm::ValueMap<float>>();
+    
+  std::unique_ptr<std::vector<pat::Jet>> outjet(new std::vector<pat::Jet>());
+  outjet->reserve(jetCollection->size());
+  for (unsigned int i=0; i < jetCollection->size(); i++) {
+    pat::Jet &jet = (*jetCollection).at(i);
+    jet.addUserFloat("chgfrac",jetPFCalculator(jet));
+//    v_chg_frac.push_back(jetPFCalculator(jet));
+    outjet->push_back(jet);
   }
-  iEvent.put(std::move(out));
+//  putInEvent("chgfrac", jetSrc, v_chg_frac, iEvent);
+  iEvent.put(std::move(outjet));
+}
+template <typename T>
+void AK4PuppiJetSpecialVariables::putInEvent(const std::string& name,
+                                  const edm::Handle<std::vector<pat::Jet>>& jets,
+                                  std::vector<T> product,
+                                  edm::Event& iEvent) const {
+  auto out = std::make_unique<edm::ValueMap<T>>();
+  typename edm::ValueMap<T>::Filler filler(*out);
+  filler.insert(jets, product.begin(), product.end());
+  filler.fill();
+  iEvent.put(std::move(out), name);
 }
 
-void AK4PuppiJetSpecialVariables::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
-    edm::ParameterSetDescription desc;
-    descriptions.add("AK4PuppiJetSpecialVariables", desc);
-}
 
-
+#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(AK4PuppiJetSpecialVariables);
 
 
