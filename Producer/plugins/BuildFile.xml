@@ -25,7 +25,7 @@
 <use name="PhysicsTools/PatAlgos"/>
 <use name="RecoVertex/VertexPrimitives"/>
 <use name="RecoVertex/VertexTools"/>
-<library file="*.cc" name="PhysicsToolsNanoAODPlugins">
+<library file="*.cc" name="SNUPhysicsToolsNanoAODPlugins">
   <use name="DataFormats/VertexReco"/>
   <use name="CommonTools/Utils"/>
   <use name="CommonTools/UtilAlgos"/>

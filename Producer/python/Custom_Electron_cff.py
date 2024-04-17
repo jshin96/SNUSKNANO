@@ -4,18 +4,24 @@ from PhysicsTools.NanoAOD.nano_eras_cff import *
 from PhysicsTools.NanoAOD.simpleCandidateFlatTableProducer_cfi import simpleCandidateFlatTableProducer
 
 from PhysicsTools.NanoAOD.common_cff import *
-
-
-####################################################################
-# IMPORT NANOAOD OBJECT PYTHON NEEDED HERE
-#from PhysicsTools.NanoAOD.templates_cff import *
-#
-####################################################################
-
+from PhysicsTools.NanoAOD.electrons_cff import *
 from PhysicsTools.NanoAOD.triggerObjects_cff import triggerObjectTable, mksel
 
-def Custom_TEMPLATE_Task(process):
-    ##LIST TASKS AND TABLES THAT ARE NOT NEEDED FOR THE ANALYSIS (THESE WILL NOT EXIST IN OUTPUT)
+def Custom_Electron_Task(process):
+    process.nanoTableTaskCommon.remove(process.metTablesTask)
+    process.nanoTableTaskCommon.remove(process.tauTablesTask)
+    process.nanoTableTaskCommon.remove(process.boostedTauTablesTask)
+    process.nanoTableTaskCommon.remove(process.jetPuppiTablesTask)
+    process.nanoTableTaskCommon.remove(process.jetAK8TablesTask)
+
+    process.nanoTableTaskFS.remove(process.photonMCTask)
+    process.nanoTableTaskFS.remove(process.jetMCTask)
+    process.nanoTableTaskFS.remove(process.tauMCTask)
+    process.nanoTableTaskFS.remove(process.boostedTauMCTask)
+    process.nanoTableTaskFS.remove(process.metMCTable)
+    process.nanoTableTaskFS.remove(process.ttbarCatMCProducersTask)
+    process.nanoTableTaskFS.remove(process.ttbarCategoryTableTask)
+    
     return process
 
 def AddPFTracks(proc):
@@ -72,24 +78,22 @@ def AddPFTracks(proc):
 
     
 
-def AddVariablesForTEMPLATE(proc):
+def AddVariablesForElectron(proc):
     
-#    templateWithVariables = "templateWithVariables"
-#    setattr(proc, templateWithVariables, cms.EDProducer("TEMPLATESpecialVariables",
-#                    templateSrc=cms.InputTag("slimmedTEMPLATEs"),
+#    electronWithVariables = "electronWithVariables"
+#    setattr(proc, electronWithVariables, cms.EDProducer("MuonSpecialVariables",
+#                    electronSrc=cms.InputTag("finalElectrons"),
 #                    vertexSrc=cms.InputTag("offlineSlimmedPrimaryVertices"),
 #                    trkSrc=cms.InputTag("pfTracks"),
 #                    )
 #    )
-#    getattr(proc,"templateTask").add(getattr(proc,templateWithVariables))
+#    getattr(proc,"electronTask").add(getattr(proc,electronWithVariables))
     
-#    proc.slimmedTEMPLATEsUpdated.src = cms.InputTag("templateWithVariables")
+#    proc.slimmedMuonsUpdated.src = cms.InputTag("electronWithVariables")
   
-####################################################################
-# Variables that are already defined yet not added in PhysicsTools/NanoAOD/python/ can directly added here
-#    proc.templateTable.variables.standalonePt = Var("? standAloneTEMPLATE().isNonnull() ? standAloneTEMPLATE().pt() : -1", float, doc = "pt of the standalone template", precision=14)
-#    
-####################################################################
+ 
+    proc.electronTable.variables.trackMomentum = Var("trackMomentumAtVtx().R()",float,doc="trackMomentum at vertex",precision=10)
+    
     return proc
 
 def AddTriggerObjectBits(process): 
@@ -104,13 +108,13 @@ def IncreaseGenPrecesion(process):
     
     return process
 
-def PrepTEMPLATECustomNanoAOD(process):
+def PrepMuonCustomNanoAOD(process):
     
-    process = Custom_TEMPLATE_Task(process)
-    process = AddPFTracks(process)
-    process = AddVariablesForTEMPLATE(process)
-    process = AddTriggerObjectBits(process)
-    process = IncreaseGenPrecesion(process)
+#    process = Custom_Electron_Task(process)
+#    process = AddPFTracks(process)
+    process = AddVariablesForElectron(process)
+#    process = AddTriggerObjectBits(process)
+#    process = IncreaseGenPrecesion(process)
 
 
     return process

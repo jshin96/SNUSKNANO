@@ -1,23 +1,23 @@
-#include "FWCore/Framework/interface/stream/EDProducer.h"
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/Common/interface/View.h"
-
-#include "DataFormats/PatCandidates/interface/UserData.h"
-#include "PhysicsTools/PatAlgos/interface/PATUserDataMerger.h"
-
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
-
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
-
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/MuonReco/interface/MuonSimInfo.h"
+#include "DataFormats/PatCandidates/interface/UserData.h"
+
+
+#include "FWCore/Framework/interface/stream/EDProducer.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+
+#include "PhysicsTools/PatAlgos/interface/PATUserDataMerger.h"
+
 #include "MuonAnalysis/MuonAssociators/interface/PropagateToMuon.h"
 
 class MuonSpecialVariables : public edm::stream::EDProducer<> {
